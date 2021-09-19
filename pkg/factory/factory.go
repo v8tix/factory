@@ -1,12 +1,10 @@
 package factory
 
 import (
-	"fmt"
 	. "github.com/v8tix/factory/pkg/config"
 	"github.com/v8tix/factory/pkg/container"
 	"github.com/v8tix/factory/pkg/models/vehicle"
 	. "github.com/v8tix/factory/pkg/queue"
-	"log"
 	"time"
 )
 
@@ -28,15 +26,11 @@ func New(srvCfg *SrvCfg, carContainer *container.CarContainer, queue *Queue) *Fa
 
 // StartAssemblingProcess HINT: this function is currently not returning anything, make it return right away every single vehicle once assembled,
 //(Do not wait for all of them to be assembled to return them all, send each one ready over to main)
-func (f *Factory) StartAssemblingProcess() {
+func (f *Factory) StartAssemblingProcess(chunkSize int) {
 	done := make(chan interface{})
 	defer close(done)
 	vehiclesSlice := f.CarContainer.Container
-	for i, cars := range vehiclesSlice {
-		for j, car := range cars {
-			log.Println(fmt.Sprintf("(%d, %d) = %#v", i, j, car))
-		}
-	}
+	f.Queue.BulkAdd(chunkSize, vehiclesSlice)
 }
 
 func (f *Factory) fanOutAssembleVehicles(

@@ -6,7 +6,7 @@ import (
 )
 
 type SrvCfg struct {
-	Wg  sync.WaitGroup
+	Wg  *sync.WaitGroup
 	Log struct {
 		ErrorLog *log.Logger
 		InfoLog  *log.Logger
