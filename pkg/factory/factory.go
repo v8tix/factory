@@ -3,9 +3,8 @@ package factory
 import (
 	. "github.com/v8tix/factory/pkg/config"
 	"github.com/v8tix/factory/pkg/container"
-	"github.com/v8tix/factory/pkg/models/vehicle"
+	. "github.com/v8tix/factory/pkg/models/vehicle"
 	. "github.com/v8tix/factory/pkg/queue"
-	"time"
 )
 
 type Factory struct {
@@ -33,49 +32,7 @@ func (f *Factory) StartAssemblingProcess(chunkSize int) {
 	f.Queue.BulkAdd(chunkSize, vehiclesSlice)
 }
 
-func (f *Factory) fanOutAssembleVehicles(
-	done <-chan interface{},
-	carsStream <-chan *vehicle.Car,
-	assemblySpots int,
-) []<-chan *vehicle.Car {
-	assemblers := make([]<-chan *vehicle.Car, assemblySpots)
-	for i := 0; i < assemblySpots; i++ {
-		assemblers[i] = f.assembleVehicles(done, carsStream)
-	}
-	return assemblers
-}
-
-func (f *Factory) assembleVehicles(
-	done <-chan interface{},
-	carsStream <-chan *vehicle.Car,
-) <-chan *vehicle.Car {
-	outCarsStream := make(chan *vehicle.Car)
-	go func() {
-		defer close(outCarsStream)
-		for car := range carsStream {
-			time.Sleep(1 * time.Millisecond)
-			select {
-			case <-done:
-				return
-			case outCarsStream <- car:
-			}
-		}
-	}()
-	return outCarsStream
-}
-
-func generateVehicleStream(vehicles []*vehicle.Car) <-chan *vehicle.Car {
-	vehicleStream := make(chan *vehicle.Car, len(vehicles))
-	go func(vehicleStream chan *vehicle.Car) {
-		defer close(vehicleStream)
-		for i := 0; i < len(vehicles); i++ {
-			vehicleStream <- vehicles[i]
-		}
-	}(vehicleStream)
-	return vehicleStream
-}
-
-func (f *Factory) testCar(car *vehicle.Car) string {
+func (f *Factory) testCar(car *Car) string {
 	logs := ""
 
 	log, err := car.StartEngine()

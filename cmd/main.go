@@ -7,7 +7,6 @@ import (
 	"github.com/v8tix/factory/pkg/factory"
 	. "github.com/v8tix/factory/pkg/queue"
 	"log"
-	"os"
 	"sync"
 	"time"
 )
@@ -21,9 +20,6 @@ const (
 func main() {
 
 	var srvCfg SrvCfg
-	infoLog, errorLog := setupLoggers()
-	srvCfg.Log.InfoLog = infoLog
-	srvCfg.Log.ErrorLog = errorLog
 	var wg sync.WaitGroup
 	srvCfg.Wg = &wg
 	queue := NewQueue(capacity, &srvCfg)
@@ -49,10 +45,4 @@ func listener(queue *Queue, wgr *sync.WaitGroup) {
 			time.Sleep(1 * time.Second)
 		}
 	}()
-}
-
-func setupLoggers() (*log.Logger, *log.Logger) {
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
-	return infoLog, errorLog
 }

@@ -4,21 +4,21 @@ import (
 	"errors"
 	"fmt"
 	. "github.com/v8tix/factory/pkg/config"
-	"github.com/v8tix/factory/pkg/models/vehicle"
+	. "github.com/v8tix/factory/pkg/models/vehicle"
 	"time"
 )
 
 type AssemblySpot struct {
-	vehicleToAssemble *vehicle.Car
+	vehicleToAssemble *Car
 	assemblyLog       string
 	SrvCfg            *SrvCfg
 }
 
-func (s *AssemblySpot) SetVehicle(v *vehicle.Car) {
+func (s *AssemblySpot) SetVehicle(v *Car) {
 	s.vehicleToAssemble = v
 }
 
-func (s *AssemblySpot) GetAssembledVehicle() *vehicle.Car {
+func (s *AssemblySpot) GetAssembledVehicle() *Car {
 	return s.vehicleToAssemble
 }
 
@@ -26,9 +26,9 @@ func (s *AssemblySpot) GetAssembledLogs() string {
 	return s.assemblyLog
 }
 
-func (s *AssemblySpot) AssembleVehicle() (*vehicle.Car, error) {
+func (s *AssemblySpot) AssembleVehicle() (*Car, error) {
 	if s.vehicleToAssemble == nil {
-		return nil, errors.New("no vehicle set to start assembling")
+		return nil, errors.New("no set to start assembling")
 	}
 
 	s.assembleChassis()

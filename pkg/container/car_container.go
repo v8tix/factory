@@ -2,18 +2,16 @@ package container
 
 import (
 	"errors"
-	"fmt"
 	. "github.com/v8tix/factory/pkg/config"
-	"github.com/v8tix/factory/pkg/models/vehicle"
+	. "github.com/v8tix/factory/pkg/models/vehicle"
 	. "github.com/v8tix/factory/pkg/utils"
 	"math/rand"
-	"time"
 )
 
 const factor = 10
 
 type CarContainer struct {
-	Container [][]*vehicle.Car
+	Container [][]*Car
 	SrvCfg    *SrvCfg
 }
 
@@ -22,10 +20,8 @@ func NewCarContainer(amountOfVehicles, chunkSize int, srvCfg *SrvCfg) (*CarConta
 		return nil, errors.New("the remainder of the division between the number of cars and 10 should be 10")
 	}
 	a := createEmptySquareArray(factor)
-	now := time.Now()
 	YXAxisChunking(amountOfVehicles, chunkSize, a, fillXAxis, srvCfg)
 	srvCfg.Wg.Wait()
-	fmt.Printf("container creation {elapsed time: %v}\n", time.Since(now))
 	return &CarContainer{
 		Container: a,
 		SrvCfg:    srvCfg,
@@ -35,8 +31,8 @@ func NewCarContainer(amountOfVehicles, chunkSize int, srvCfg *SrvCfg) (*CarConta
 func YXAxisChunking(
 	amountOfVehicles,
 	chunkSize int,
-	emptyArray [][]*vehicle.Car,
-	fn func(amountOfVehicles, chunkSize int, a [][]*vehicle.Car, srvCfg *SrvCfg),
+	emptyArray [][]*Car,
+	fn func(amountOfVehicles, chunkSize int, a [][]*Car, srvCfg *SrvCfg),
 	srvCfg *SrvCfg,
 ) {
 	for i := 0; i <= chunkSize; i += chunkSize {
@@ -48,25 +44,25 @@ func YXAxisChunking(
 	}
 }
 
-func fillXAxis(amountOfVehicles, chunkSize int, a [][]*vehicle.Car, srvCfg *SrvCfg) {
+func fillXAxis(amountOfVehicles, chunkSize int, a [][]*Car, srvCfg *SrvCfg) {
 	background2D(amountOfVehicles, chunkSize, a, srvCfg, chunkX)
 }
 
 func background2D(
 	amountOfVehicles,
 	chunkSize int,
-	a [][]*vehicle.Car,
+	a [][]*Car,
 	srvCfg *SrvCfg,
-	fun func(amountOfVehicles, chunkSize int, a [][]*vehicle.Car, srvCfg *SrvCfg),
+	fun func(amountOfVehicles, chunkSize int, a [][]*Car, srvCfg *SrvCfg),
 ) {
 	srvCfg.Wg.Add(1)
-	go func(ac [][]*vehicle.Car) {
+	go func(ac [][]*Car) {
 		defer srvCfg.Wg.Done()
 		fun(amountOfVehicles, chunkSize, a, srvCfg)
 	}(a)
 }
 
-func chunkX(amountOfVehicles int, chunkSize int, a [][]*vehicle.Car, srvCfg *SrvCfg) {
+func chunkX(amountOfVehicles int, chunkSize int, a [][]*Car, srvCfg *SrvCfg) {
 	for index := range a {
 		XAxisChunking(amountOfVehicles, chunkSize, a[index], srvCfg, fillYAxis)
 	}
@@ -75,9 +71,9 @@ func chunkX(amountOfVehicles int, chunkSize int, a [][]*vehicle.Car, srvCfg *Srv
 func XAxisChunking(
 	amountOfVehicles int,
 	chunkSize int,
-	array []*vehicle.Car,
+	array []*Car,
 	srvCfg *SrvCfg,
-	fn func(amountOfVehicles int, a []*vehicle.Car, srvCfg *SrvCfg),
+	fn func(amountOfVehicles int, a []*Car, srvCfg *SrvCfg),
 
 ) {
 	for i := 0; i <= chunkSize; i += chunkSize {
@@ -89,34 +85,34 @@ func XAxisChunking(
 	}
 }
 
-func fillYAxis(amountOfVehicles int, a []*vehicle.Car, srvCfg *SrvCfg) {
+func fillYAxis(amountOfVehicles int, a []*Car, srvCfg *SrvCfg) {
 	background1D(amountOfVehicles, a, srvCfg, chunkY)
 }
 
 func background1D(
 	amountOfVehicles int,
-	a []*vehicle.Car,
+	a []*Car,
 	srvCfg *SrvCfg,
-	fun func(amountOfVehicles int, a []*vehicle.Car),
+	fun func(amountOfVehicles int, a []*Car),
 ) {
 	srvCfg.Wg.Add(1)
-	go func(ac []*vehicle.Car) {
+	go func(ac []*Car) {
 		defer srvCfg.Wg.Done()
 		fun(amountOfVehicles, a)
 	}(a)
 }
 
-func chunkY(amountOfVehicles int, a []*vehicle.Car) {
+func chunkY(amountOfVehicles int, a []*Car) {
 	for index := range a {
 		SleepRandomTime()
-		a[index] = vehicle.NewCar(rand.Intn(amountOfVehicles) + 1)
+		a[index] = NewCar(rand.Intn(amountOfVehicles) + 1)
 	}
 }
 
-func createEmptySquareArray(n int) [][]*vehicle.Car {
-	a := make([][]*vehicle.Car, n)
+func createEmptySquareArray(n int) [][]*Car {
+	a := make([][]*Car, n)
 	for i := 0; i < len(a); i++ {
-		a[i] = make([]*vehicle.Car, n)
+		a[i] = make([]*Car, n)
 	}
 	return a
 }
