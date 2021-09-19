@@ -16,6 +16,20 @@ type Car struct {
 	AssembleLog   string
 }
 
+func New(id int) *Car {
+	return &Car{
+		Id:            id,
+		Chassis:       "NotSet",
+		Tires:         "NotSet",
+		Engine:        "NotSet",
+		Electronics:   "NotSet",
+		Dash:          "NotSet",
+		Sits:          "NotSet",
+		Windows:       "NotSet",
+		EngineStarted: false,
+	}
+}
+
 func (c *Car) StartEngine() (string, error) {
 	if c.EngineStarted {
 		return "", fmt.Errorf("Cannot start engine already started")

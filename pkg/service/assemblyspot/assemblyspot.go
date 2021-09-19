@@ -3,6 +3,7 @@ package assemblyspot
 import (
 	"errors"
 	"fmt"
+	. "github.com/v8tix/factory/pkg/config"
 	"github.com/v8tix/factory/pkg/models/vehicle"
 	"time"
 )
@@ -10,6 +11,7 @@ import (
 type AssemblySpot struct {
 	vehicleToAssemble *vehicle.Car
 	assemblyLog       string
+	SrvCfg            *SrvCfg
 }
 
 func (s *AssemblySpot) SetVehicle(v *vehicle.Car) {
@@ -24,7 +26,6 @@ func (s *AssemblySpot) GetAssembledLogs() string {
 	return s.assemblyLog
 }
 
-//hint: improve this function to execute this process concurrenlty
 func (s *AssemblySpot) AssembleVehicle() (*vehicle.Car, error) {
 	if s.vehicleToAssemble == nil {
 		return nil, errors.New("no vehicle set to start assembling")
