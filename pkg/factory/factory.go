@@ -3,26 +3,24 @@ package factory
 import (
 	"fmt"
 	. "github.com/v8tix/factory/pkg/config"
+	"github.com/v8tix/factory/pkg/container"
 	"github.com/v8tix/factory/pkg/models/vehicle"
-	"github.com/v8tix/factory/pkg/service/assemblyspot"
+	. "github.com/v8tix/factory/pkg/queue"
 	"log"
-	"math/rand"
 	"time"
 )
 
-const (
-	assemblySpots int = 5
-)
-
 type Factory struct {
-	AssemblingSpots []*assemblyspot.AssemblySpot
-	SrvCfg          *SrvCfg
+	CarContainer *container.CarContainer
+	SrvCfg       *SrvCfg
+	Queue        *Queue
 }
 
-func New(srvCfg *SrvCfg) *Factory {
+func New(srvCfg *SrvCfg, carContainer *container.CarContainer, queue *Queue) *Factory {
 	factory := &Factory{
-		AssemblingSpots: make([]*assemblyspot.AssemblySpot, assemblySpots),
-		SrvCfg:          srvCfg,
+		SrvCfg:       srvCfg,
+		CarContainer: carContainer,
+		Queue:        queue,
 	}
 
 	return factory
@@ -30,34 +28,30 @@ func New(srvCfg *SrvCfg) *Factory {
 
 // StartAssemblingProcess HINT: this function is currently not returning anything, make it return right away every single vehicle once assembled,
 //(Do not wait for all of them to be assembled to return them all, send each one ready over to main)
-func (f *Factory) StartAssemblingProcess(amountOfVehicles int) {
+func (f *Factory) StartAssemblingProcess() {
 	done := make(chan interface{})
 	defer close(done)
-	vehiclesSlice := createVehiclesSlice(amountOfVehicles, assemblySpots)
+	vehiclesSlice := f.CarContainer.Container
 	for i, cars := range vehiclesSlice {
-		log.Println(fmt.Sprintf("starting iteration %d", i))
-		vehicleLotsStream := generateVehicleStream(cars)
-		finders := fanOutAssembleVehicles(done, vehicleLotsStream, assemblySpots)
-		for _, finder := range finders {
-			car := <-finder
-			log.Println(car)
+		for j, car := range cars {
+			log.Println(fmt.Sprintf("(%d, %d) = %#v", i, j, car))
 		}
 	}
 }
 
-func fanOutAssembleVehicles(
+func (f *Factory) fanOutAssembleVehicles(
 	done <-chan interface{},
 	carsStream <-chan *vehicle.Car,
 	assemblySpots int,
 ) []<-chan *vehicle.Car {
 	assemblers := make([]<-chan *vehicle.Car, assemblySpots)
 	for i := 0; i < assemblySpots; i++ {
-		assemblers[i] = assembleVehicles(done, carsStream)
+		assemblers[i] = f.assembleVehicles(done, carsStream)
 	}
 	return assemblers
 }
 
-func assembleVehicles(
+func (f *Factory) assembleVehicles(
 	done <-chan interface{},
 	carsStream <-chan *vehicle.Car,
 ) <-chan *vehicle.Car {
@@ -66,7 +60,6 @@ func assembleVehicles(
 		defer close(outCarsStream)
 		for car := range carsStream {
 			time.Sleep(1 * time.Millisecond)
-			//TODO: write to queue
 			select {
 			case <-done:
 				return
@@ -75,19 +68,6 @@ func assembleVehicles(
 		}
 	}()
 	return outCarsStream
-}
-
-func createVehiclesSlice(amountOfVehicles, assemblySpots int) [][]*vehicle.Car {
-	size := amountOfVehicles / assemblySpots
-	a := make([][]*vehicle.Car, size)
-	for i := 0; i < len(a); i++ {
-		a[i] = make([]*vehicle.Car, assemblySpots)
-		for j := 0; j < assemblySpots; j++ {
-			car := vehicle.New(rand.Intn(amountOfVehicles) + 1)
-			a[i][j] = car
-		}
-	}
-	return a
 }
 
 func generateVehicleStream(vehicles []*vehicle.Car) <-chan *vehicle.Car {

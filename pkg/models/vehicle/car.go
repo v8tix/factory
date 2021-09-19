@@ -16,7 +16,7 @@ type Car struct {
 	AssembleLog   string
 }
 
-func New(id int) *Car {
+func NewCar(id int) *Car {
 	return &Car{
 		Id:            id,
 		Chassis:       "NotSet",
