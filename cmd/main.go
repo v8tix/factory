@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	. "github.com/v8tix/factory/pkg/config"
 	"github.com/v8tix/factory/pkg/container"
 	"github.com/v8tix/factory/pkg/factory"
@@ -40,7 +39,8 @@ func listener(queue *Queue, wgr *sync.WaitGroup) {
 		defer wgr.Done()
 		for {
 			if queue.Next() {
-				log.Println(fmt.Sprintf("Removed from queue %d", queue.Message().Id))
+				log.Println(queue.Message().AssembleLog)
+				log.Println(queue.Message().TestingLog)
 			}
 			time.Sleep(1 * time.Second)
 		}

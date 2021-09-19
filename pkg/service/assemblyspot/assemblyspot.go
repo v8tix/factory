@@ -83,3 +83,51 @@ func (s *AssemblySpot) assembleWindows() {
 	time.Sleep(1 * time.Second)
 	s.assemblyLog += fmt.Sprintf("Windows at [%s], ", time.Now().Format("2006-01-02 15:04:05.000"))
 }
+
+func (s *AssemblySpot) TestCar(car *Car) string {
+	logs := ""
+
+	result, err := car.StartEngine()
+	if err == nil {
+		logs += result + ", "
+	} else {
+		logs += err.Error() + ", "
+	}
+
+	result, err = car.MoveForwards(10)
+	if err == nil {
+		logs += result + ", "
+	} else {
+		logs += err.Error() + ", "
+	}
+
+	result, err = car.MoveForwards(10)
+	if err == nil {
+		logs += result + ", "
+	} else {
+		logs += err.Error() + ", "
+	}
+
+	result, err = car.TurnLeft()
+	if err == nil {
+		logs += result + ", "
+	} else {
+		logs += err.Error() + ", "
+	}
+
+	result, err = car.TurnRight()
+	if err == nil {
+		logs += result + ", "
+	} else {
+		logs += err.Error() + ", "
+	}
+
+	result, err = car.StopEngine()
+	if err == nil {
+		logs += result + ", "
+	} else {
+		logs += err.Error() + ", "
+	}
+
+	return logs
+}

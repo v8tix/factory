@@ -2,7 +2,7 @@ package queue
 
 import (
 	. "github.com/v8tix/factory/pkg/config"
-	"github.com/v8tix/factory/pkg/models/vehicle"
+	. "github.com/v8tix/factory/pkg/models/vehicle"
 	"github.com/v8tix/factory/pkg/service/assemblyspot"
 	. "github.com/v8tix/factory/pkg/utils"
 	"log"
@@ -12,12 +12,12 @@ import (
 type Queue struct {
 	srvCfg  *SrvCfg
 	mu      sync.Mutex
-	data    []*vehicle.Car
-	latched *vehicle.Car
+	data    []*Car
+	latched *Car
 }
 
 func NewQueue(capacity int, srvCfg *SrvCfg) *Queue {
-	cars := make([]*vehicle.Car, 0, capacity)
+	cars := make([]*Car, 0, capacity)
 	return &Queue{
 		data:   cars,
 		srvCfg: srvCfg,
@@ -25,7 +25,7 @@ func NewQueue(capacity int, srvCfg *SrvCfg) *Queue {
 	}
 }
 
-func (q *Queue) Enqueue(vehicle *vehicle.Car) error {
+func (q *Queue) Enqueue(vehicle *Car) error {
 	q.mu.Lock()
 	q.data = append(q.data, vehicle)
 	q.mu.Unlock()
@@ -59,22 +59,22 @@ func (q *Queue) Next() bool {
 	return true
 }
 
-func (q *Queue) Message() *vehicle.Car {
+func (q *Queue) Message() *Car {
 	q.mu.Lock()
 	msg := q.latched
 	q.mu.Unlock()
 	return msg
 }
 
-func (q *Queue) BulkAdd(chunkSize int, value [][]*vehicle.Car) {
+func (q *Queue) BulkAdd(chunkSize int, value [][]*Car) {
 	YXAxisChunking(chunkSize, value, q.fillXAxis, q.srvCfg)
 	q.srvCfg.Wg.Wait()
 }
 
 func YXAxisChunking(
 	chunkSize int,
-	container [][]*vehicle.Car,
-	fn func(chunkSize int, a [][]*vehicle.Car, srvCfg *SrvCfg),
+	container [][]*Car,
+	fn func(chunkSize int, a [][]*Car, srvCfg *SrvCfg),
 	srvCfg *SrvCfg,
 ) {
 	for i := 0; i <= chunkSize; i += chunkSize {
@@ -86,25 +86,25 @@ func YXAxisChunking(
 	}
 }
 
-func (q *Queue) fillXAxis(chunkSize int, a [][]*vehicle.Car, srvCfg *SrvCfg) {
+func (q *Queue) fillXAxis(chunkSize int, a [][]*Car, srvCfg *SrvCfg) {
 	background2D(chunkSize, a, srvCfg, q.chunkX)
 }
 
 func background2D(
 	chunkSize int,
-	a [][]*vehicle.Car,
+	a [][]*Car,
 	srvCfg *SrvCfg,
-	fun func(chunkSize int, a [][]*vehicle.Car, srvCfg *SrvCfg),
+	fun func(chunkSize int, a [][]*Car, srvCfg *SrvCfg),
 ) {
 	srvCfg.Wg.Add(1)
-	go func(ac [][]*vehicle.Car) {
+	go func(ac [][]*Car) {
 		defer srvCfg.Wg.Done()
 		//fmt.Println(GetGoRoutineId())
 		fun(chunkSize, a, srvCfg)
 	}(a)
 }
 
-func (q *Queue) chunkX(chunkSize int, a [][]*vehicle.Car, srvCfg *SrvCfg) {
+func (q *Queue) chunkX(chunkSize int, a [][]*Car, srvCfg *SrvCfg) {
 	for index := range a {
 		XAxisChunking(chunkSize, a[index], srvCfg, q.fillYAxis)
 	}
@@ -112,9 +112,9 @@ func (q *Queue) chunkX(chunkSize int, a [][]*vehicle.Car, srvCfg *SrvCfg) {
 
 func XAxisChunking(
 	chunkSize int,
-	array []*vehicle.Car,
+	array []*Car,
 	srvCfg *SrvCfg,
-	fn func(a []*vehicle.Car, srvCfg *SrvCfg),
+	fn func(a []*Car, srvCfg *SrvCfg),
 
 ) {
 	for i := 0; i <= chunkSize; i += chunkSize {
@@ -126,34 +126,36 @@ func XAxisChunking(
 	}
 }
 
-func (q *Queue) fillYAxis(a []*vehicle.Car, srvCfg *SrvCfg) {
+func (q *Queue) fillYAxis(a []*Car, srvCfg *SrvCfg) {
 	background1D(a, srvCfg, q.chunkY)
 }
 
 func background1D(
-	a []*vehicle.Car,
+	a []*Car,
 	srvCfg *SrvCfg,
-	fun func(a []*vehicle.Car),
+	fun func(a []*Car),
 ) {
 	srvCfg.Wg.Add(1)
-	go func(ac []*vehicle.Car) {
+	go func(ac []*Car) {
 		defer srvCfg.Wg.Done()
 		//fmt.Println(GetGoRoutineId())
 		fun(a)
 	}(a)
 }
 
-func (q *Queue) chunkY(a []*vehicle.Car) {
+func (q *Queue) chunkY(a []*Car) {
 	for _, car := range a {
 		SleepRandomTime()
 		as := assemblyspot.AssemblySpot{}
 		as.SetVehicle(car)
 		if assembleVehicle, err := as.AssembleVehicle(); err != nil {
 
-			log.Println(err)
+			log.Fatalln(err)
 
 		} else {
 
+			assembleVehicle.TestingLog = as.TestCar(assembleVehicle)
+			assembleVehicle.AssembleLog = as.GetAssembledLogs()
 			err := q.Enqueue(assembleVehicle)
 			if err != nil {
 				log.Println(err)

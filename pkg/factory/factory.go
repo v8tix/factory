@@ -3,7 +3,6 @@ package factory
 import (
 	. "github.com/v8tix/factory/pkg/config"
 	"github.com/v8tix/factory/pkg/container"
-	. "github.com/v8tix/factory/pkg/models/vehicle"
 	. "github.com/v8tix/factory/pkg/queue"
 )
 
@@ -30,52 +29,4 @@ func (f *Factory) StartAssemblingProcess(chunkSize int) {
 	defer close(done)
 	vehiclesSlice := f.CarContainer.Container
 	f.Queue.BulkAdd(chunkSize, vehiclesSlice)
-}
-
-func (f *Factory) testCar(car *Car) string {
-	logs := ""
-
-	log, err := car.StartEngine()
-	if err == nil {
-		logs += log + ", "
-	} else {
-		logs += err.Error() + ", "
-	}
-
-	log, err = car.MoveForwards(10)
-	if err == nil {
-		logs += log + ", "
-	} else {
-		logs += err.Error() + ", "
-	}
-
-	log, err = car.MoveForwards(10)
-	if err == nil {
-		logs += log + ", "
-	} else {
-		logs += err.Error() + ", "
-	}
-
-	log, err = car.TurnLeft()
-	if err == nil {
-		logs += log + ", "
-	} else {
-		logs += err.Error() + ", "
-	}
-
-	log, err = car.TurnRight()
-	if err == nil {
-		logs += log + ", "
-	} else {
-		logs += err.Error() + ", "
-	}
-
-	log, err = car.StopEngine()
-	if err == nil {
-		logs += log + ", "
-	} else {
-		logs += err.Error() + ", "
-	}
-
-	return logs
 }
